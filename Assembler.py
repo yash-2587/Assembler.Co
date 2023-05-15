@@ -4,6 +4,7 @@ global error
 error=""
 line=-1
 
+#function for binary conversion
 def run(done):
     # Extract the numerical part from the string
     num = done[1:]
@@ -41,15 +42,29 @@ def type_A(j, string):
 
 def type_B(j, string):
     # Instruction type B: immediate instructions
-    if(int(j[2][1:])<0 or int(j[2][1:])>127):
-        e = ("Syntax Error : Immediate value out of range, line with error is : " + str(line))
-        # exit()
-    # Set the first bit to 0
-    string += '0'
-    # Convert the immediate value to binary and add it to the string
-    a = run(j[2])
-    string = string + reg_dic[j[1]] + a
+    if j[2][0] != '$':
+        error = "Syntax Error: Invalid immediate value format, line with error is : " + str(line)
+        return ""
+    
+    num = j[2][1:]  # Remove the dollar sign ('$') from the immediate value
+    
+    if not num.isdigit():
+        error = "Syntax Error: Invalid immediate value format, line with error is : " + str(line)
+        return ""
+    
+    immediate = int(num)
+    
+    if immediate < 0 or immediate > 127:
+        error = "Syntax Error: Immediate value out of range, line with error is : " + str(line)
+        return ""
+    
+    binary_str = format(immediate, '07b')  # Convert immediate value to a 7-bit binary string
+    
+    string += '0'  # Set the first bit to 0
+    string = string + reg_dic[j[1]] + binary_str  # Convert the register name and immediate value to binary
+    
     return string
+
 
 def type_C(j, string):
     # Instruction type C: load and store instructions
@@ -125,10 +140,13 @@ with open ("input.txt") as f:
         error=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
         # exit()
 
-for i in instruction:
+line = 0  # Initialize line number counter
+index = 0  # Initialize instruction index
+
+while index < len(instruction):
     line += 1  # Increase line number counter
     string = ''  # Initialize empty string for binary representation of instruction
-    j = i.split()  # Split instruction into its components
+    j = instruction[index].split()  # Split instruction into its components
 
     # Check if instruction begins with 'var'
     if j[0] != 'var':
@@ -142,6 +160,9 @@ for i in instruction:
                 j[0] = 'movi'
             else:
                 j[0] = 'mov'
+        # Handle special case of 'mov' instruction
+
+
 
         # Check if 'FLAGS' register is being used illegally
         if 'FLAGS' in j:
@@ -182,6 +203,14 @@ for i in instruction:
                 typoerror()
             # Generate binary representation of instruction
             sol += (type_C(j, string)) + '\n'
+        elif j[0] == 'ld' or j[0] == 'st':
+            string += opcode_dic[j[0]]  # Add opcode to binary string
+            if len(j) != 3:  # Check if there are two operands
+                generalsyntaxerror()
+            if j[1] not in reg_dic.keys():  # Check if first operand is a register
+                typoerror()
+            # Generate binary representation of instruction
+            sol += (type_D(j, string)) + '\n'    
 
         # Check if instruction is a jump instruction
         elif j[0] == 'jmp' or j[0] == 'jlt' or j[0] == 'je' or j[0] == 'jgt':
@@ -208,6 +237,8 @@ for i in instruction:
         # If instruction is not recognized, call error function
         else:
             typoerror()
+    
+    index += 1
 
 
                
