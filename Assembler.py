@@ -1,3 +1,5 @@
+import sys 
+listu=[]
 reg_dic = {"R0":'000',"R1":'001',"R2":'010',"R3":'011',"R4":'100',"R5":'101',"R6":'110'}
 opcode_dic = {"add":'00000',"sub":'00001', "mov" : '00010', "movi":'00011', "ld":'00100', "st":'00101', "mul":'00110', "div":'00111', "rs":'01000', "ls":'01001', "xor":'01010', "or":'01011', "and":'01100', "not":'01101', "cmp":'01110', "jmp":'01111', "jlt": '11100', "jgt":'11101', "je":'11111', "hlt":'11010' }
 global wrong
@@ -8,6 +10,7 @@ line=-1
 def convert_decimal_to_binary(num, num_bits):
     binary_str = bin(num)[2:].zfill(num_bits)
     return binary_str
+
 
 
 def type_A(index, string):
@@ -108,23 +111,26 @@ def typeerror():
     global wrong    
     wrong=("typoerror, line with error is : " + str(line))
 
-with open ("input.txt") as f:
-    instruction =remove_empty(f.readlines())    # read the input file and remove empty lines
+# with open ("input.txt") as f:
+#     instruction =remove_empty(f.readlines())    # read the input file and remove empty lines
 
-    if ('hlt' not in instruction[-1]):
-        e=("Syntax Error : Missing hlt instruction")  # check if the last instruction is 'hlt'
-        # exit() 
-    elif ('hlt' not in instruction[-1]):
-        wrong=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
-        # exit()
+#     if ('hlt' not in instruction[-1]):
+#         e=("Syntax Error : Missing hlt instruction")  # check if the last instruction is 'hlt'
+#         # exit() 
+#     elif ('hlt' not in instruction[-1]):
+#         wrong=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
+#         # exit()
+for i in sys.stdin:
+    listu.append(i)
+nlines=len(listu)
 
 line = 0  # Initialize line number counter
 index = 0  # Initialize instruction index
 
-while index < len(instruction):
+while index < len(listu):
     line += 1  # Increase line number counter
     string = ''  # Initialize empty string for binary representation of instruction
-    index_j = instruction[index].split()  # Split instruction into its components
+    index_j = listu[index].split()  # Split instruction into its components
 
     # Check if instruction begins with 'var'
     if index_j[0] != 'var':
@@ -218,12 +224,4 @@ while index < len(instruction):
     
     index += 1
 
-
-with open('output.txt', 'w') as file2:
-    # Print the value of the variable
-    print(wrong)
-
-    if wrong != '':
-        file2.write(wrong)
-    else:
-        file2.write(ans)
+print(ans)
