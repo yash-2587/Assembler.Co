@@ -1,52 +1,30 @@
-reg_dic = {"R0":'000',"R1":'001',"R2":'010',"R3":'011',"R4":'100',"R5":'101',"R6":'110',"FLAGS":'111'}
-opcode_dic = {"add":'00000',"sub":'00001', "mov" : '00010', "movi":'00011', "ld":'00100', "st":'00101', "mul":'00110', "div":'00111', "rs":'01000', "ls":'01001', "xor":'01010', "or":'01011', "and":'01100', "not":'01101', "cmp":'01110', "jmp":'01111', "jlt": '11100', "jgt":'11101', "je":'11111', "hlt":'11010', "addf": "10000", "subf": "10001", "movf": "10010" }
-global error
-error=""
+reg_dic = {"R0":'000',"R1":'001',"R2":'010',"R3":'011',"R4":'100',"R5":'101',"R6":'110'}
+opcode_dic = {"add":'00000',"sub":'00001', "mov" : '00010', "movi":'00011', "ld":'00100', "st":'00101', "mul":'00110', "div":'00111', "rs":'01000', "ls":'01001', "xor":'01010', "or":'01011', "and":'01100', "not":'01101', "cmp":'01110', "jmp":'01111', "jlt": '11100', "jgt":'11101', "je":'11111', "hlt":'11010' }
+global wrong
+wrong=""
 line=-1
 
 #function for binary conversion
-def run(done):
-    # Extract the numerical part from the string
-    num = done[1:]
-    
-    # Convert the numerical part into a binary string
-    binary_str = ""
-    if int(num) == 0:
-        binary_str = '0000000'
-    else:
-        while int(num) > 0:
-            # Calculate the remainder when num is divided by 2
-            p = int(num) % 2
-            
-            # Add the remainder to the left of the current binary string
-            binary_str = str(p) + binary_str
-            
-            # Divide num by 2 to get the next bit of the binary string
-            num = int(num) // 2
-        
-        # Add leading zeros if necessary to make the binary string 7 bits long
-        x = len(binary_str)
-        if x <= 7:
-            binary_str = '0'*(7-x) + binary_str
-        
-    # Return the binary string
+def convert_decimal_to_binary(num, num_bits):
+    binary_str = bin(num)[2:].zfill(num_bits)
     return binary_str
 
-def type_A(j, string):
+
+def type_A(index, string):
     # Instruction type A: ADD, SUB, MOV, AND, OR, XOR
     # Set the first two bits to 00
     string += '00'
     # Convert register names to binary and add them to the string
-    string = string + reg_dic[j[1]] + reg_dic[j[2]] + reg_dic[j[3]]
+    string = string + reg_dic[index[1]] + reg_dic[index[2]] + reg_dic[index[3]]
     return string
 
-def type_B(j, string):
+def type_B(index, string):
     # Instruction type B: immediate instructions
-    if j[2][0] != '$':
+    if index[2][0] != '$':
         error = "Syntax Error: Invalid immediate value format, line with error is : " + str(line)
         return ""
     
-    num = j[2][1:]  # Remove the dollar sign ('$') from the immediate value
+    num = index[2][1:]  # Remove the dollar sign ('$') from the immediate value
     
     if not num.isdigit():
         error = "Syntax Error: Invalid immediate value format, line with error is : " + str(line)
@@ -61,46 +39,46 @@ def type_B(j, string):
     binary_str = format(immediate, '07b')  # Convert immediate value to a 7-bit binary string
     
     string += '0'  # Set the first bit to 0
-    string = string + reg_dic[j[1]] + binary_str  # Convert the register name and immediate value to binary
+    string = string + reg_dic[index[1]] + binary_str  # Convert the register name and immediate value to binary
     
     return string
 
 
-def type_C(j, string):
+def type_C(index, string):
     # Instruction type C: load and store instructions
     # Set bits 3-7 to 00000
     string = string + '00000'
     # Convert register names to binary and add them to the string
-    string = string + reg_dic[j[1]] + reg_dic[j[2]]
+    string = string + reg_dic[index[1]] + reg_dic[index[2]]
     return string
 
-def type_D(j, string):
+def type_D(index, string):
     # Instruction type D: conditional jump instructions
-    if(j[2] in dict_1.keys()):
+    if(index[2] in dct1.keys()):
         e = ("Syntax Error: misuse of Label as Variable, line with error is : " + str(line))
         return ""
-    elif(j[2] not in d.keys()):
+    elif(index[2] not in d.keys()):
         e = ("Syntax Error : Use of undefined variables, line with error is : " + str(line))
         return e
     else:
         # Set the first bit to 0 and convert register and memory addresses to binary
-        string = string + '0' + reg_dic[j[1]] + d[j[2]]
+        string = string + '0' + reg_dic[index[1]] + d[index[2]]
         return string
 
-def type_E(j, string):
+def type_E(index, string):
     # Instruction type E: unconditional jump instructions
-    if(j[1] in d.keys()):
+    if(index[1] in d.keys()):
         e = ("Syntax Error: misuse of Variable as Label, line with error is : " + str(line))
         return ""
-    elif(j[1] not in dict_1.keys()):
+    elif(index[1] not in dct1.keys()):
         e = ("Syntax Error : Use of undefine label, line with error is : " + str(line))
         return ""
     else:
         # Set bits 5-7 to 000 and convert memory addresses to binary
-        string = string + '0000' + dict_1[j[1]]
+        string = string + '0000' + dct1[index[1]]
         return string
 
-def type_F(j, string):
+def type_F(index, string):
     # Instruction type F: HLT instruction
     # Set all bits to 0
     string += '00000000000'
@@ -108,9 +86,9 @@ def type_F(j, string):
 
 x='0000000'
 count=0
-counti=0
+count1=0
 d={}
-dict_1={}
+dct1={}
 
 
 def remove_empty(l):
@@ -120,15 +98,15 @@ def remove_empty(l):
     # helper function to remove empty lines from the input file
     return l
 
-sol=''
+ans=''
 
-def generalsyntaxerror():
-    global error     # define a function to handle general syntax errors
+def syntaxerrorcommon():
+    global wrong     # define a function to handle general syntax errors
     e=("general syntax error, line with error is : " + str(line)) 
 
-def typoerror():
-    global error    
-    error=("typoerror, line with error is : " + str(line))
+def typeerror():
+    global wrong    
+    wrong=("typoerror, line with error is : " + str(line))
 
 with open ("input.txt") as f:
     instruction =remove_empty(f.readlines())    # read the input file and remove empty lines
@@ -137,7 +115,7 @@ with open ("input.txt") as f:
         e=("Syntax Error : Missing hlt instruction")  # check if the last instruction is 'hlt'
         # exit() 
     elif ('hlt' not in instruction[-1]):
-        error=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
+        wrong=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
         # exit()
 
 line = 0  # Initialize line number counter
@@ -146,108 +124,106 @@ index = 0  # Initialize instruction index
 while index < len(instruction):
     line += 1  # Increase line number counter
     string = ''  # Initialize empty string for binary representation of instruction
-    j = instruction[index].split()  # Split instruction into its components
+    index_j = instruction[index].split()  # Split instruction into its components
 
     # Check if instruction begins with 'var'
-    if j[0] != 'var':
+    if index_j[0] != 'var':
         # If instruction has a label, remove it
-        if ':' in j[0]:
-            j.remove(j[0])
+        if ':' in index_j[0]:
+            index_j.remove(index_j[0])
 
         # Handle special case of 'mov' instruction
-        if j[0] == 'mov':
-            if j[2][0] == 'R':
-                j[0] = 'movi'
+        if index_j[0] == 'mov':
+            if index_j[2][0] == 'R':
+                index_j[0] = 'movi'
             else:
-                j[0] = 'mov'
+                index_j[0] = 'mov'
         # Handle special case of 'mov' instruction
 
 
 
         # Check if 'FLAGS' register is being used illegally
-        if 'FLAGS' in j:
-            if j[0] != 'mov':
+        if 'FLAGS' in index_j:
+            if index_j[0] != 'mov':
                 e = ("line with error is : " + str(line))
                 # exit()
 
         # Handle arithmetic and logical instructions
-        if j[0] == 'add' or j[0] == 'sub' or j[0] == 'mul' or j[0] == 'xor' or j[0] == 'or' or j[0] == 'and':
-            string += opcode_dic[j[0]]  # Add opcode to binary string
-            if len(j) != 4:  # Check if there are three operands
-                generalsyntaxerror()
+        if index_j[0] == 'add' or index_j[0] == 'sub' or index_j[0] == 'mul' or index_j[0] == 'xor' or index_j[0] == 'or' or index_j[0] == 'and':
+            string += opcode_dic[index_j[0]]  # Add opcode to binary string
+            if len(index_j) != 4:  # Check if there are three operands
+                syntaxerrorcommon()
             for k in range(1, 4):
-                if j[k] not in reg_dic.keys():  # Check if operands are registers
-                    typoerror()
+                if index_j[k] not in reg_dic.keys():  # Check if operands are registers
+                    typeerror()
 
             # Generate binary representation of instruction
-            sol += (type_A(j, string)) + '\n'
+            ans += (type_A(index_j, string)) + '\n'
 
         # Handle 'mov', 'rs', and 'ls' instructions
-        elif j[0] == 'mov' or j[0] == 'rs' or j[0] == 'ls':
-            string += opcode_dic[j[0]]  # Add opcode to binary string
-            if len(j) != 3:  # Check if there are two operands
-                generalsyntaxerror()
-            if j[1] not in reg_dic.keys():  # Check if first operand is a register
-                typoerror()
+        elif index_j[0] == 'mov' or index_j[0] == 'rs' or index_j[0] == 'ls':
+            string += opcode_dic[index_j[0]]  # Add opcode to binary string
+            if len(index_j) != 3:  # Check if there are two operands
+                syntaxerrorcommon()
+            if index_j[1] not in reg_dic.keys():  # Check if first operand is a register
+                typeerror()
             # Generate binary representation of instruction
-            sol += (type_B(j, string)) + '\n'
+            ans += (type_B(index_j, string)) + '\n'
 
         # Handle 'movi', 'div', 'cmp', and 'not' instructions
-        elif j[0] == 'movi' or j[0] == 'div' or j[0] == 'cmp' or j[0] == 'not':
-            string += opcode_dic[j[0]]  # Add opcode to binary string
-            if len(j) != 3:  # Check if there are two operands
-                generalsyntaxerror()
-            if j[1] not in reg_dic.keys():  # Check if first operand is a register
-                typoerror()
-            if j[2] not in reg_dic.keys():  # Check if second operand is a register
-                typoerror()
+        elif index_j[0] == 'movi' or index_j[0] == 'div' or index_j[0] == 'cmp' or index_j[0] == 'not':
+            string += opcode_dic[index_j[0]]  # Add opcode to binary string
+            if len(index_j) != 3:  # Check if there are two operands
+                syntaxerrorcommon()
+            if index_j[1] not in reg_dic.keys():  # Check if first operand is a register
+                typeerror()
+            if index_j[2] not in reg_dic.keys():  # Check if second operand is a register
+                typeerror()
             # Generate binary representation of instruction
-            sol += (type_C(j, string)) + '\n'
-        elif j[0] == 'ld' or j[0] == 'st':
-            string += opcode_dic[j[0]]  # Add opcode to binary string
-            if len(j) != 3:  # Check if there are two operands
-                generalsyntaxerror()
-            if j[1] not in reg_dic.keys():  # Check if first operand is a register
-                typoerror()
+            ans += (type_C(index_j, string)) + '\n'
+        elif index_j[0] == 'ld' or index_j[0] == 'st':
+            string += opcode_dic[index_j[0]]  # Add opcode to binary string
+            if len(index_j) != 3:  # Check if there are two operands
+                syntaxerrorcommon()
+            if index_j[1] not in reg_dic.keys():  # Check if first operand is a register
+                typeerror()
             # Generate binary representation of instruction
-            sol += (type_D(j, string)) + '\n'    
+            ans += (type_D(index_j, string)) + '\n'    
 
         # Check if instruction is a jump instruction
-        elif j[0] == 'jmp' or j[0] == 'jlt' or j[0] == 'je' or j[0] == 'jgt':
+        elif index_j[0] == 'jmp' or index_j[0] == 'jlt' or index_j[0] == 'je' or index_j[0] == 'jgt':
             # Add opcode to machine code string
-            string += opcode_dic[j[0]]
+            string += opcode_dic[index_j[0]]
             # Check that there are exactly 2 arguments
-            if len(j) != 2:
+            if len(index_j) != 2:
                 # Call error function if syntax is incorrect
-                generalsyntaxerror()
+                syntaxerrorcommon()
             # Call instruction_type_E to generate machine code and add to string
-            sol += (type_E(j, string)) + '\n'
+            ans += (type_E(index_j, string)) + '\n'
 
         # Check if instruction is a halt instruction
-        elif j[0] == 'hlt':
+        elif index_j[0] == 'hlt':
             # Add opcode to machine code string
-            string += opcode_dic[j[0]]
+            string += opcode_dic[index_j[0]]
             # Check that there is only 1 argument
-            if len(j) != 1:
+            if len(index_j) != 1:
                 # Call error function if syntax is incorrect
-                generalsyntaxerror()
+                syntaxerrorcommon()
             # Call instruction_type_F to generate machine code and add to string
-            sol += (type_F(j, string)) + '\n'
+            ans += (type_F(index_j, string)) + '\n'
 
         # If instruction is not recognized, call error function
         else:
-            typoerror()
+            typeerror()
     
     index += 1
 
+
 with open('output.txt', 'w') as file2:
     # Print the value of the variable
-    print(error)
+    print(wrong)
 
-    if error != '':
-        file2.write(error)
+    if wrong != '':
+        file2.write(wrong)
     else:
-        file2.write(sol)
-
-
-file2.close()
+        file2.write(ans)
