@@ -240,18 +240,14 @@ while index < len(instruction):
     
     index += 1
 
+with open('output.txt', 'w') as file2:
+    # Print the value of the variable
+    print(error)
 
-               
-# Create a new file named "output.txt" 
-file2 = open('output.txt', 'w')
+    if error != '':
+        file2.write(error)
+    else:
+        file2.write(sol)
 
-# Print the value of the variable 
-print(error)
-
-if error != '':
-    file2.write(error)
-
-else:
-    file2.write(sol)
 
 file2.close()
