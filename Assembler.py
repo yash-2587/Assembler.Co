@@ -111,15 +111,6 @@ def typeerror():
     global wrong    
     wrong=("typoerror, line with error is : " + str(line))
 
-# with open ("input.txt") as f:
-#     instruction =remove_empty(f.readlines())    # read the input file and remove empty lines
-
-#     if ('hlt' not in instruction[-1]):
-#         e=("Syntax Error : Missing hlt instruction")  # check if the last instruction is 'hlt'
-#         # exit() 
-#     elif ('hlt' not in instruction[-1]):
-#         wrong=("Syntax Error : hlt not being used as the last instruction")   # check if 'hlt' is the last instruction
-#         # exit()
 for i in sys.stdin:
     listu.append(i)
 nlines=len(listu)
