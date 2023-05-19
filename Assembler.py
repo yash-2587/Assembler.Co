@@ -1,7 +1,7 @@
 import sys 
 listu=[]
-reg_dic = {"R0":'000',"R1":'001',"R2":'010',"R3":'011',"R4":'100',"R5":'101',"R6":'110'}
-opcode_dic = {"add":'00000',"sub":'00001', "mov" : '00010', "movi":'00011', "ld":'00100', "st":'00101', "mul":'00110', "div":'00111', "rs":'01000', "ls":'01001', "xor":'01010', "or":'01011', "and":'01100', "not":'01101', "cmp":'01110', "jmp":'01111', "jlt": '11100', "jgt":'11101', "je":'11111', "hlt":'11010' }
+reg_dic = {"R0":'000',"R1":'001',"R2":'010',"R3":'011',"R4":'100',"R5":'101',"R6":'110',"FLAGS":'111'}
+opcode_dic = {"add":'00000',"sub":'00001', "mov" : '00010', "movi":'00011', "ld":'00100', "st":'00101', "mul":'00110', "div":'00111', "rs":'01000', "ls":'01001', "xor":'01010', "or":'01011', "and":'01100', "not":'01101', "cmp":'01110', "jmp":'01111', "jlt": '11100', "jgt":'11101', "je":'11111', "hlt":'11010', "addf": "10000", "subf": "10001", "movf": "10010" }
 global wrong
 wrong=""
 line=-1
@@ -150,8 +150,11 @@ while index < len(listu):
             string += opcode_dic[index_j[0]]  # Add opcode to binary string
             if len(index_j) != 4:  # Check if there are three operands
                 syntaxerrorcommon()
-            for k in range(1, 4):
-                if index_j[k] not in reg_dic.keys():  # Check if operands are registers
+            try:
+                for k in range(1, 4):
+                    if index_j[k] not in reg_dic.keys():  # Check if operands are registers
+                        typeerror()
+            except IndexError:
                     typeerror()
 
             # Generate binary representation of instruction
