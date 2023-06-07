@@ -9,7 +9,7 @@ memAddress = dict()
 
 class registers:
 
-    def __init__(own):
+    def inside(own):
         own.regs = {"000": 0, "001": 0, "010": 0, "011": 0,
                      "100": 0, "101": 0, "110": 0, "111": "0"*16, "PC": 0}
 
@@ -44,7 +44,7 @@ class registers:
 
 
 class operation:
-    def __init__(own, regs: registers) -> None:
+    def inside(own, regs: registers) -> None:
         # operation of each opcode
         own.opcodes = {"10000": own.add, "10001": own.sub,  "10010": own.mov1,  "10011": own.mov2,  "10100": own.ld,  "10101": own.st,  "10110": own.mul,  "10111": own.div,  "11000": own.rs,  "11001": own.ls, "11010": own.xor,
                         "11011": own.orOps,  "11100": own.andOps,  "11101": own.notOps,  "11110": own.cmp,  "11111": own.jmp,  "01100": own.jlt,  "01101": own.jgt,  "01111": own.je,  "01010": own.hlt, "00000": own.addf, "00001": own.subf, "00010": own.movf}
