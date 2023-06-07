@@ -28,26 +28,26 @@ class registers:
     def setEqual(own):
         own.regs["111"] = "0"*15 + "1"
 
-    def convBin8(own, num):
+    def convbin_8bit(own, num):
         binNum = bin(num)[2:]
         return "0"*(8-len(binNum)) + binNum
 
-    def convBin16(own, num):
+    def convbin_16bit(own, num):
         binNum = bin(num)[2:]
         return "0"*(16-len(binNum)) + binNum
 
     def __repr__(own) -> str:
-        return "{} {} {} {} {} {} {} {} {}".format(own.convBin8(own.regs["PC"]), own.convBin16(own.regs["000"]), 
-        own.convBin16(own.regs["001"]), own.convBin16(own.regs["010"]),
-        own.convBin16(own.regs["011"]), own.convBin16(own.regs["100"]), 
-        own.convBin16(own.regs["101"]), own.convBin16(own.regs["110"]), own.regs["111"])
+        return "{} {} {} {} {} {} {} {} {}".format(own.convbin_8bit(own.regs["PC"]), own.convbin_16bit(own.regs["000"]), 
+        own.convbin_16bit(own.regs["001"]), own.convbin_16bit(own.regs["010"]),
+        own.convbin_16bit(own.regs["011"]), own.convbin_16bit(own.regs["100"]), 
+        own.convbin_16bit(own.regs["101"]), own.convbin_16bit(own.regs["110"]), own.regs["111"])
 
 
 class operation:
     def inside(own, regs: registers) -> None:
         # operation of each opcode
         own.opcodes = {"10000": own.add, "10001": own.sub,  "10010": own.mov1,  "10011": own.mov2,  "10100": own.ld,  "10101": own.st,  "10110": own.mul,  "10111": own.div,  "11000": own.rs,  "11001": own.ls, "11010": own.xor,
-                        "11011": own.orOps,  "11100": own.andOps,  "11101": own.notOps,  "11110": own.cmp,  "11111": own.jmp,  "01100": own.jlt,  "01101": own.jgt,  "01111": own.je,  "01010": own.hlt, "00000": own.addf, "00001": own.subf, "00010": own.movf}
+                        "11011": own.or_operation,  "11100": own.and_operation,  "11101": own.not_operation,  "11110": own.cmp,  "11111": own.jmp,  "01100": own.jlt,  "01101": own.jgt,  "01111": own.je,  "01010": own.hlt, "00000": own.addf, "00001": own.subf, "00010": own.movf}
 
         own.regsObj = regs
         own.regs = regs.regs
@@ -344,7 +344,7 @@ def floatInt(own, numeric):
         # Setting the program counter
         own.regs["PC"] += 1
 
-    def orOps(own, instruction):
+    def or_operation(own, instruction):
         # removing filler bits
         instruction = instruction[2:]
 
@@ -362,7 +362,7 @@ def floatInt(own, numeric):
         # Setting the program counter
         own.regs["PC"] += 1
 
-    def andOps(own, instruction):
+    def and_operation(own, instruction):
         # removing filler bits
         instruction = instruction[2:]
 
@@ -380,7 +380,7 @@ def floatInt(own, numeric):
         # Setting the program counter
         own.regs["PC"] += 1
 
-    def notOps(own, instruction):
+    def not_operation(own, instruction):
         # removing filler bits
         instruction = instruction[5:]
 
@@ -388,7 +388,7 @@ def floatInt(own, numeric):
         own.regsObj.clearFlag()
 
         # Doing the operation
-        num = own.regsObj.convBin16(own.regs[instruction[:3]])
+        num = own.regsObj.convbin_16bit(own.regs[instruction[:3]])
 
         invert = ["1" if i == "0" else "0" for i in num]
         own.regs[instruction[3:]] = int("".join(invert), 2)
